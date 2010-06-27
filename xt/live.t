@@ -5,7 +5,6 @@ use Geo::Coder::OSM;
 use LWP::UserAgent;
 use Test::More;
 
-use Data::Dump qw(dump);
 plan tests => 8;
 
 my $debug = $ENV{GEO_CODER_OSM_DEBUG};
