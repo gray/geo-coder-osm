@@ -123,7 +123,7 @@ object.
     @locations = $geocoder->geocode(location => $location)
 
 In scalar context, this method returns the first location result; and in
-list context it returns all locations results.
+list context it returns all location results.
 
 Each location result is a hashref; a typical example looks like:
 
@@ -175,7 +175,8 @@ Accessor for the UserAgent object.
 L<http://wiki.openstreetmap.org/wiki/Nominatim>
 
 L<Geo::Coder::Bing>, L<Geo::Coder::Google>, L<Geo::Coder::Mapquest>,
-L<Geo::Coder::Multimap>, L<Geo::Coder::Yahoo>
+L<Geo::Coder::Multimap>, L<Geo::Coder::Navteq>, L<Geo::Coder::TomTom>,
+L<Geo::Coder::Yahoo>
 
 =head1 REQUESTS AND BUGS
 
