@@ -213,7 +213,7 @@ L<http://rt.cpan.org/Public/Dist/Display.html?Name=Geo-Coder-OSM>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Geo-Coder-OSM>
+L<http://search.cpan.org/dist/Geo-Coder-OSM/>
 
 =back
 
