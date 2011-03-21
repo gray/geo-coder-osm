@@ -170,10 +170,6 @@ Accessor for the UserAgent object.
 
 L<http://wiki.openstreetmap.org/wiki/Nominatim>
 
-L<Geo::Coder::Bing>, L<Geo::Coder::Bing::Bulk>, L<Geo::Coder::Google>,
-L<Geo::Coder::Mapquest>, L<Geo::Coder::Multimap>, L<Geo::Coder::Navteq>,
-L<Geo::Coder::PlaceFinder>, L<Geo::Coder::TomTom>, L<Geo::Coder::Yahoo>
-
 =head1 REQUESTS AND BUGS
 
 Please report any bugs or feature requests to
