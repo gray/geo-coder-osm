@@ -16,12 +16,12 @@ my $geocoder = Geo::Coder::OSM->new(
     debug => $debug
 );
 {
-    my $address = 'Hollywood & Highland, Los Angeles';
+    my $address = '132 Maney Hill Road, West Midlands, UK';
     my $location = $geocoder->geocode($address);
     is(
-        $location->{address}{city},
-        'Los Angeles',
-        "correct city for $address"
+        $location->{address}{town},
+        'Sutton Coldfield',
+        "correct town for $address"
     );
 }
 {
