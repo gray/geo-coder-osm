@@ -18,12 +18,9 @@ sub new {
 
     my $self = bless \ %params, $class;
 
-    if ($params{ua}) {
-        $self->ua($params{ua});
-    }
-    else {
-        $self->{ua} = LWP::UserAgent->new(agent => "$class/$VERSION");
-    }
+    $self->ua(
+        $params{ua} || LWP::UserAgent->new(agent => "$class/$VERSION")
+    );
 
     if ($self->{debug}) {
         my $dump_sub = sub { $_[0]->dump(maxlength => 0); return };
