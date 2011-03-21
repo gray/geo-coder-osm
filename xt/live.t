@@ -5,12 +5,9 @@ use Geo::Coder::OSM;
 use LWP::UserAgent;
 use Test::More;
 
-plan tests => 8;
-
 my $debug = $ENV{GEO_CODER_OSM_DEBUG};
-unless ($debug) {
-    diag "Set GEO_CODER_OSM_DEBUG to see request/response data";
-}
+diag "Set GEO_CODER_OSM_DEBUG to see request/response data"
+    unless $debug;
 
 my $geocoder = Geo::Coder::OSM->new(
     debug => $debug
@@ -52,3 +49,5 @@ my $geocoder = Geo::Coder::OSM->new(
         'decoded character encoding of response'
     );
 }
+
+done_testing;
