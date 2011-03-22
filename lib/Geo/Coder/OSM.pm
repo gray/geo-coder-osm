@@ -12,6 +12,11 @@ use URI;
 our $VERSION = '0.01';
 $VERSION = eval $VERSION;
 
+my %sources = (
+    osm      => 'http://nominatim.openstreetmap.org/search',
+    mapquest => 'http://open.mapquestapi.com/nominatim/v1/search',
+);
+
 sub new {
     my ($class, @params) = @_;
     my %params = (@params % 2) ? (key => @params) : @params;
@@ -21,6 +26,20 @@ sub new {
     $self->ua(
         $params{ua} || LWP::UserAgent->new(agent => "$class/$VERSION")
     );
+
+    if (exists $self->{sources}) {
+        my $sources = $self->{sources};
+        $self->{sources} = $sources = [$sources] unless ref $sources;
+        for my $source (@$sources) {
+            croak qq(unknown source '$source')
+                unless exists $sources{$source};
+        }
+    }
+    else {
+        $self->{sources} = ['osm'];
+    }
+
+    $self->{source_idx} = 0;
 
     if ($self->{debug}) {
         my $dump_sub = sub { $_[0]->dump(maxlength => 0); return };
@@ -53,7 +72,8 @@ sub geocode {
     my $location = $params{location} or return;
     $location = Encode::encode('utf-8', $location);
 
-    my $uri = URI->new('http://nominatim.openstreetmap.org/search');
+    my $idx = ($self->{source_idx} %= @{$self->{sources}})++;
+    my $uri = URI->new($sources{ $self->{sources}[$idx] });
     $uri->query_form(
         q                 => $location,
         format            => 'json',
@@ -107,11 +127,21 @@ Nominatim geocoding service.
 =head2 new
 
     $geocoder = Geo::Coder::OSM->new();
+    $geocoder = Geo::Coder::OSM->new(
+        ua      => $ua,
+        sources => [ 'osm', 'mapquest' ],
+        debug   => 1,
+    );
 
 Creates a new geocoding object.
 
 Accepts an optional B<ua> parameter for passing in a custom LWP::UserAgent
 object.
+
+Accepts an optional B<sources> parameter for specifying the data sources.
+Current valid values are B<osm> and B<mapquest>. The default value is
+B<osm>. To cycle between different sources, specify an array reference
+for the B<sources> value.
 
 =head2 geocode
 
@@ -169,6 +199,8 @@ Accessor for the UserAgent object.
 =head1 SEE ALSO
 
 L<http://wiki.openstreetmap.org/wiki/Nominatim>
+
+L<http://open.mapquestapi.com/nominatim/>
 
 =head1 REQUESTS AND BUGS
 
