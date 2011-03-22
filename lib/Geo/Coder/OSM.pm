@@ -72,7 +72,9 @@ sub geocode {
     my $location = $params{location} or return;
     $location = Encode::encode('utf-8', $location);
 
-    my $idx = ($self->{source_idx} %= @{$self->{sources}})++;
+    # Cycle throught the list of sources.
+    my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
+
     my $uri = URI->new($sources{ $self->{sources}[$idx] });
     $uri->query_form(
         q                 => $location,
@@ -126,12 +128,12 @@ Nominatim geocoding service.
 
 =head2 new
 
-    $geocoder = Geo::Coder::OSM->new();
+    $geocoder = Geo::Coder::OSM->new()
     $geocoder = Geo::Coder::OSM->new(
         ua      => $ua,
         sources => [ 'osm', 'mapquest' ],
         debug   => 1,
-    );
+    )
 
 Creates a new geocoding object.
 
