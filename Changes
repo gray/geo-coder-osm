@@ -1,7 +1,7 @@
 Revision history for Geo-Coder-OSM
 
 0.02  Tue Mar 22 00:15:25 UTC 2011
-    - Added support the Mapquest mirror of the Nominatim service.
+    - Added support for the Mapquest mirror of the Nominatim service.
 
 0.01  Sun Jun 27 00:33:44 UTC 2010
     - Initial distribution.
