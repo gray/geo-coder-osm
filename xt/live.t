@@ -24,15 +24,15 @@ for my $source (qw(osm mapquest)) {
         );
     }
     {
-        my $address = qq(Albrecht-Th\xE4r-Stra\xDFe 6, 48147 M\xFCnster, Germany);
+        my $address = qq(Ch\xE2teau d Uss\xE9, 37420);
 
         my $location = $geocoder->geocode($address);
         ok($location, 'latin1 bytes');
-        is($location->{address}{country}, 'Germany', 'latin1 bytes');
+        is($location->{address}{country}, 'France', 'latin1 bytes');
 
         $location = $geocoder->geocode(decode('latin1', $address));
         ok($location, 'UTF-8 characters');
-        is($location->{address}{country}, 'Germany', 'UTF-8 characters');
+        is($location->{address}{country}, 'France', 'UTF-8 characters');
 
         TODO: {
             local $TODO = 'UTF-8 bytes';
@@ -40,7 +40,7 @@ for my $source (qw(osm mapquest)) {
                 encode('utf-8', decode('latin1', $address))
             );
             ok($location, 'UTF-8 bytes');
-            is($location->{address}{country}, 'Germany', 'UTF-8 bytes');
+            is($location->{address}{country}, 'France', 'UTF-8 bytes');
         }
     }
     {
