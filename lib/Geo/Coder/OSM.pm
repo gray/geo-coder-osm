@@ -9,7 +9,7 @@ use JSON;
 use LWP::UserAgent;
 use URI;
 
-our $VERSION = '0.02';
+our $VERSION = '0.02_01';
 $VERSION = eval $VERSION;
 
 my %sources = (
@@ -26,6 +26,11 @@ sub new {
     $self->ua(
         $params{ua} || LWP::UserAgent->new(agent => "$class/$VERSION")
     );
+
+    if (exists $self->{url}) {
+        $sources{other} = $self->{url};
+        $self->{sources} = [ 'other' ] unless exists $self->{sources};
+    }
 
     if (exists $self->{sources}) {
         my $sources = $self->{sources};
@@ -131,7 +136,8 @@ Nominatim geocoding service.
     $geocoder = Geo::Coder::OSM->new()
     $geocoder = Geo::Coder::OSM->new(
         ua      => $ua,
-        sources => [ 'osm', 'mapquest' ],
+        sources => [ 'osm', 'mapquest', 'other' ],
+        url     => 'http://localhost/nominatim/',
         debug   => 1,
     )
 
@@ -141,9 +147,11 @@ Accepts an optional B<ua> parameter for passing in a custom LWP::UserAgent
 object.
 
 Accepts an optional B<sources> parameter for specifying the data sources.
-Current valid values are B<osm> and B<mapquest>. The default value is
-B<osm>. To cycle between different sources, specify an array reference
+Current valid values are B<osm>, B<mapquest> and B<other>. The default value
+is B<osm>. To cycle between different sources, specify an array reference
 for the B<sources> value.
+
+The B<other> value is valid only if additional B<url> parameter is defined.
 
 =head2 geocode
 
