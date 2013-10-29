@@ -13,8 +13,10 @@ our $VERSION = '0.02';
 $VERSION = eval $VERSION;
 
 my %sources = (
-    osm      => 'http://nominatim.openstreetmap.org/search',
-    mapquest => 'http://open.mapquestapi.com/nominatim/v1/search',
+    osm      => { geocode => 'http://nominatim.openstreetmap.org/search',
+                  revcode => 'http://nominatim.openstreetmap.org/reverse' },
+    mapquest => { geocode => 'http://open.mapquestapi.com/nominatim/v1/search',
+                  revcode => 'http://open.mapquestapi.com/nominatim/v1/reverse'}
 );
 
 sub new {
@@ -40,6 +42,8 @@ sub new {
     }
 
     $self->{source_idx} = 0;
+    $self->{rev_source_idx} = 0;
+
 
     if ($self->{debug}) {
         my $dump_sub = sub { $_[0]->dump(maxlength => 0); return };
@@ -75,7 +79,8 @@ sub geocode {
     # Cycle throught the list of sources.
     my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
 
-    my $uri = URI->new($sources{ $self->{sources}[$idx] });
+    my $uri = URI->new($sources{ $self->{sources}[$idx] }{geocode});
+ 
     $uri->query_form(
         q                 => $location,
         format            => 'json',
@@ -99,6 +104,41 @@ sub geocode {
 
     my @results = @{$data || []};
     return wantarray ? @results : $results[0];
+}
+
+sub reverse_geocode {
+    my ($self, @params) = @_;
+    my %params = (@params % 2) ? (_error => @params) : @params;
+
+    my $lat = $params{lat} or return;
+    my $lon = $params{lon} or return;
+
+    my $idx = ($self->{rev_source_idx} %= @{$self->{sources}})++;
+
+    my $uri = URI->new($sources{ $self->{sources}[$idx] }{revcode});
+    $uri->query_form(
+        lat               => $lat,
+        lon               => $lon,
+        format            => 'json',
+        addressdetails    => 1,
+        'accept-language' => 'en',
+    );
+
+    my $res = $self->{response} = $self->ua->get($uri);
+    return unless $res->is_success;
+
+    # Change the content type of the response (if necessary) so
+    # HTTP::Message will decode the character encoding.
+    $res->content_type('text/plain')
+        unless $res->content_type =~ /^text/;
+
+    my $content = $res->decoded_content;
+    return unless $content;
+
+    my $data = eval { from_json($content) };
+    return unless $data;
+
+    return wantarray ? ( $data ) : $data;
 }
 
 
@@ -183,6 +223,14 @@ Each location result is a hashref; a typical example looks like:
         place_id => 9071654,
         type     => "station",
     }
+
+=head2 reverse_geocode
+
+    $location = $geocoder->reverse_geocode(lat => $lat, lon => $lon)
+
+This method returns the location result based on the latitutde/longitude
+combination provided. The result is a hashref, resembling the result of
+a normal geocode request.
 
 =head2 response
 
