@@ -24,7 +24,7 @@ for my $source (qw(osm mapquest)) {
         );
     }
     {
-        my $address = qq(Ch\xE2teau d Uss\xE9, 37420);
+        my $address = qq(Champs-\xC9lys\xE9es, 75008);
 
         my $location = $geocoder->geocode($address);
         ok($location, 'latin1 bytes');
