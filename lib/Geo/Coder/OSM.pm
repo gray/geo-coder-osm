@@ -12,7 +12,7 @@ use URI;
 our $VERSION = '0.02';
 $VERSION = eval $VERSION;
 
-my %sources = (
+our %SOURCES = (
     osm      => 'http://nominatim.openstreetmap.org',
     mapquest => 'http://open.mapquestapi.com/nominatim/v1',
 );
@@ -32,7 +32,7 @@ sub new {
         $self->{sources} = $sources = [$sources] unless ref $sources;
         for my $source (@$sources) {
             croak qq(unknown source '$source')
-                unless exists $sources{$source};
+                unless exists $SOURCES{$source};
         }
     }
     else {
@@ -75,7 +75,7 @@ sub geocode {
     # Cycle throught the list of sources.
     my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
 
-    my $uri = URI->new($sources{ $self->{sources}[$idx] } . '/search');
+    my $uri = URI->new($SOURCES{ $self->{sources}[$idx] } . '/search');
     $uri->query_form(
         q                 => $location,
         format            => 'json',
@@ -105,7 +105,7 @@ sub reverse_geocode {
     # Cycle throught the list of sources.
     my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
 
-    my $uri = URI->new($sources{ $self->{sources}[$idx] } . '/reverse');
+    my $uri = URI->new($SOURCES{ $self->{sources}[$idx] } . '/reverse');
     $uri->query_form(
         lat               => $lat,
         lon               => $lon,
@@ -181,9 +181,9 @@ Accepts an optional B<ua> parameter for passing in a custom LWP::UserAgent
 object.
 
 Accepts an optional B<sources> parameter for specifying the data sources.
-Current valid values are B<osm> and B<mapquest>. The default value is
-B<osm>. To cycle between different sources, specify an array reference
-for the B<sources> value.
+Current valid values are B<osm> and B<mapquest>. The default value is B<osm>.
+To cycle between different sources, specify an array reference for the
+B<sources> value. To define additional sources, see L</SOURCES> below.
 
 =head2 geocode
 
@@ -229,8 +229,7 @@ Each location result is a hashref; a typical example looks like:
     $location = $geocoder->reverse_geocode(lat => $lat, lon => $lon)
     $location = $geocoder->reverse_geocode(latlng => "$lat,$lon")
 
-Returns a location result for the given lat/lon pair. The resuling hashref is
-similar to that returned by the L<geocode> method.
+Returns a location result for the given lat/lon pair.
 
 =head2 response
 
@@ -245,6 +244,14 @@ used to determine the details of an error.
     $ua = $geocoder->ua($ua)
 
 Accessor for the UserAgent object.
+
+=head2 SOURCES
+
+To define additional sources add them to the B<%SOURCES> package variable like
+so:
+
+    $Geo::Coder::OSM::SOURCES{local} = 'http://127.0.0.1/api_base_path';
+    $Geo::Coder::OSM::SOURCES{internal} = 'http://internal.corp/api_base_path';
 
 =head1 SEE ALSO
 
