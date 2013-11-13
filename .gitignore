@@ -1,4 +1,6 @@
 Geo-Coder-OSM-*
+MANIFEST.bak
+MYMETA.*
 Makefile
 Makefile.old
 blib/
