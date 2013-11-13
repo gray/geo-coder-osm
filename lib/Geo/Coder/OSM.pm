@@ -13,8 +13,8 @@ our $VERSION = '0.02';
 $VERSION = eval $VERSION;
 
 my %sources = (
-    osm      => 'http://nominatim.openstreetmap.org/search',
-    mapquest => 'http://open.mapquestapi.com/nominatim/v1/search',
+    osm      => 'http://nominatim.openstreetmap.org',
+    mapquest => 'http://open.mapquestapi.com/nominatim/v1',
 );
 
 sub new {
@@ -69,19 +69,59 @@ sub geocode {
     my ($self, @params) = @_;
     my %params = (@params % 2) ? (location => @params) : @params;
 
-    my $location = $params{location} or return;
+    my $location = delete $params{location} or return;
     $location = Encode::encode('utf-8', $location);
 
     # Cycle throught the list of sources.
     my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
 
-    my $uri = URI->new($sources{ $self->{sources}[$idx] });
+    my $uri = URI->new($sources{ $self->{sources}[$idx] } . '/search');
     $uri->query_form(
         q                 => $location,
         format            => 'json',
         addressdetails    => 1,
         'accept-language' => 'en',
+        %params,
     );
+
+    return $self->_request($uri);
+}
+
+sub reverse_geocode {
+    my ($self, @params) = @_;
+    my %params = (@params % 2) ? (latlng => @params) : @params;
+
+    # Maintain api compatibility with other geocoders.
+    my ($lat, $lon);
+    if (my $latlon = delete $params{latlng}) {
+        ($lat, $lon) = split '\s*,\s*', $latlon;
+    }
+    else {
+        $lat = delete $params{lat};
+        ($lon) = grep defined, delete @params{qw(lon lng)};
+    }
+    return unless 2 == grep defined, $lat, $lon;
+
+    # Cycle throught the list of sources.
+    my $idx = ($self->{source_idx} %= @{ $self->{sources} })++;
+
+    my $uri = URI->new($sources{ $self->{sources}[$idx] } . '/reverse');
+    $uri->query_form(
+        lat               => $lat,
+        lon               => $lon,
+        format            => 'json',
+        addressdetails    => 1,
+        'accept-language' => 'en',
+        %params,
+    );
+
+    return $self->_request($uri);
+}
+
+sub _request {
+    my ($self, $uri) = @_;
+
+    return unless $uri;
 
     my $res = $self->{response} = $self->ua->get($uri);
     return unless $res->is_success;
@@ -97,7 +137,7 @@ sub geocode {
     my $data = eval { from_json($content) };
     return unless $data;
 
-    my @results = @{$data || []};
+    my @results = 'ARRAY' eq ref $data ? @$data : ($data);
     return wantarray ? @results : $results[0];
 }
 
@@ -183,6 +223,14 @@ Each location result is a hashref; a typical example looks like:
         place_id => 9071654,
         type     => "station",
     }
+
+=head2 reverse_geocode
+
+    $location = $geocoder->reverse_geocode(lat => $lat, lon => $lon)
+    $location = $geocoder->reverse_geocode(latlng => "$lat,$lon")
+
+Returns a location result for the given lat/lon pair. The resuling hashref is
+similar to that returned by the L<geocode> method.
 
 =head2 response
 

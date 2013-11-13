@@ -16,11 +16,20 @@ for my $source (qw(osm mapquest)) {
     );
     {
         my $address = '132 Maney Hill Road, West Midlands, UK';
-        my $location = $geocoder->geocode($address);
+        my $forward = $geocoder->geocode($address);
         is(
-            $location->{address}{town},
+            $forward->{address}{town},
             'Sutton Coldfield',
             "correct town for $address"
+        );
+        my $road = $forward->{address}{road};
+
+        my ($lat, $lon) = @$forward{qw(lat lon)};
+        my $reverse = $geocoder->reverse_geocode(lat => $lat, lon => $lon);
+        is(
+            $reverse->{address}{road},
+            $forward->{address}{road},
+            'correct street for lat/lon',
         );
     }
     {
