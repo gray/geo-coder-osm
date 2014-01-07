@@ -7,9 +7,10 @@ use Carp qw(croak);
 use Encode ();
 use JSON;
 use LWP::UserAgent;
+use XML::Simple;
 use URI;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 $VERSION = eval $VERSION;
 
 our %SOURCES = (
@@ -22,6 +23,11 @@ sub new {
     my %params = (@params % 2) ? (key => @params) : @params;
 
     my $self = bless \ %params, $class;
+
+    $self->{format} ||= 'json';
+    if ( !grep {$_ eq $self->{format}} qw/xml json/) {
+        croak qq(invalid data format '$self->{format}')
+    }
 
     $self->ua(
         $params{ua} || LWP::UserAgent->new(agent => "$class/$VERSION")
@@ -78,7 +84,7 @@ sub geocode {
     my $uri = URI->new($SOURCES{ $self->{sources}[$idx] } . '/search');
     $uri->query_form(
         q                 => $location,
-        format            => 'json',
+        format            => $self->{format},
         addressdetails    => 1,
         'accept-language' => 'en',
         %params,
@@ -109,7 +115,7 @@ sub reverse_geocode {
     $uri->query_form(
         lat               => $lat,
         lon               => $lon,
-        format            => 'json',
+        format            => $self->{format},
         addressdetails    => 1,
         'accept-language' => 'en',
         %params,
@@ -134,7 +140,14 @@ sub _request {
     my $content = $res->decoded_content;
     return unless $content;
 
-    my $data = eval { from_json($content) };
+    my $data;
+    if ($self->{format} eq 'json') {
+        $data = eval { from_json($content) };
+    }
+    else {
+        $data = eval { XMLin($content) };
+    }
+
     return unless $data;
 
     my @results = 'ARRAY' eq ref $data ? @$data : ($data);
@@ -173,6 +186,7 @@ Nominatim geocoding service.
         ua      => $ua,
         sources => [ 'osm', 'mapquest' ],
         debug   => 1,
+        format  => 'xml',
     )
 
 Creates a new geocoding object.
@@ -182,6 +196,12 @@ object.
 
 Accepts an optional B<sources> parameter for specifying the data sources.
 Current valid values are B<osm> and B<mapquest>. The default value is B<osm>.
+
+Accepts an optional B<format> parameter for specifying the data format of the response.
+Current valid values are B<json> and B<xml>. The default value is B<json>.
+Apparently the XML response is reacher of information (i.e. B<place_rank> is not
+included in the JSON response).
+
 To cycle between different sources, specify an array reference for the
 B<sources> value. To define additional sources, see L</SOURCES> below.
 
