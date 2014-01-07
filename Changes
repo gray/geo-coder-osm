@@ -1,5 +1,8 @@
 Revision history for Geo-Coder-OSM
 
+0.04  Tue Jan 07 16:44:07 UTC 2014
+    - Support XML format in response
+
 0.03  Wed Nov 13 22:40:07 UTC 2013
     - Added reverse_geocode method.
     - Allowed for additional sources to be defined.
